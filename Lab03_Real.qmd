@@ -26,7 +26,8 @@ raw_data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/ma
 
 ## Question 1: Public Data
 
-The value of open environmental and health data cannot be overstated. When readily accessible, this data: - Enables scientists to establish climate trends spanning decades, creating the foundation for predictive models. - Allows researchers to identify correlations between environmental factors and public health outcomes. - Provides the evidence necessary for effective resource management and conservation efforts. - Democratizes scientific information, allowing diverse stakeholders to analyze and interpret the data. When this open data becomes inaccessible: - Long-term trend analysis becomes fragmented and difficult. - Researchers lose the ability to reproduce findings. - Policy decisions may be made without complete information. - Public trust in scientific and governmental institutions is worn down.
+Open environmental and health data is power beacsue when it is readily accessible, it enables scientists to establish climate trends over decades which makes it possible to create predictive models. It also provides the evidence necessary for effective resource management and conservation efforts. 
+Additionally, when this open data becomes inaccessible long-term trend analysis becomes difficult as well as researchers losing the ability to reproduce and create findings.
 
 ## Question 2: Daily Summary
 
@@ -147,13 +148,18 @@ glimpse(population_data)
 skimr::skim(population_data)
 ```
 
-After reading in and filtering the population data to only include Colorado counties, the dataset contained 64 rows and 3 columns. The columns are: - FIPS: a 5-digit character code identifying each county, combining the state code (08 for Colorado) and the county code. - County_Name: the name of each county - Population_2021: the estimated population of each county in 2021, reported as a numeric value. The filtered dataset is well-suited for joining with the Colorado COVID data using the FIPS column, allowing us to normalize COVID case counts based on population size.
+After  filtering the population data to only include Colorado counties, the dataset contained 64 rows and 3 columns. 
+The columns are: 
+- FIPS: a 5-digit character code identifying each county, combining the state code (08 for Colorado) and the county code. 
+- County_Name: the name of each county 
+- Population_2021: the estimated population of each county in 2021, reported as a numeric value. 
+The filtered dataset is good for joining with the Colorado COVID data using the FIPS column, which we can normalize COVID case counts based on population size with it.
 
 ```{r}
 range(population_data$Population_2021)
 ```
 
-The population of Colorado counties in 2021 ranges from 741 people in the smallest county to 737,287 people in the largest county. This wide range underscores the importance of normalizing COVID case counts by population, as raw case counts alone would unfairly compare large and small counties.
+The population of Colorado counties in 2021 ranges from 741 people to 737,287 people in the largest county. This wide range makes it important to normalize COVID case counts by population, as raw case counts alone would unfairly compare large and small counties.
 
 ```{r}
 colorado <- colorado %>%
@@ -309,7 +315,7 @@ ggplot(state_covid_per_capita, aes(x = date, y = rolling_avg_per_100k, color = s
   theme_minimal()
 ```
 
-Scaling by population had a significant influence on the analysis because it helps to level the playing field between states of different sizes. Without adjustment, larger states like New York and California would naturally have much higher case counts simply because they have more people. This makes it harder to fairly compare them to smaller states like Ohio. When we adjust for population, however, the analysis focuses on the rate of infection rather than just the numeric totals of cases. The process of scaling highlights the importance of considering prevalence *relative to population size*, which can change the story compared to simply looking at total case counts.
+Adjusting for population size played a crucial role in the analysis by allowing for a more balanced comparison between states of varying sizes. Without this adjustment, states with larger populations, such as California and New York, would naturally report higher case counts, making it difficult to compare them fairly to smaller states like Ohio. By normalizing the data based on population, the focus shifts from raw case numbers to infection rates, providing a clearer picture of how widespread the virus is in each state. This approach emphasizes the importance of assessing prevalence relative to population rather than relying solely on total case counts.
 
 ##Question 7: Space & Time
 
@@ -346,4 +352,4 @@ theme_minimal() +
     )
 ```
 
-The graph above shows the weighted mean center of COVID-19 cases over time. The visualization shows a clear pattern of movement from west to east across the country, with points colored by month and sized according to total case numbers. There appears to be a concentrated curve showing how the weighted center of cases moved across the southern United States over time. Early in the pandemic, cases were more concentrated in the western/central US, but as time progressed, the center of gravity for cases shifted toward the eastern and southeastern parts of the country.
+The graph illustrates how the weighted mean center of COVID-19 cases changed over time. The visualization reveals a distinct west-to-east shift across the country, with points color-coded by month and scaled according to total case numbers. A noticeable curve emerges, tracing the movement of the weighted center of cases through the southern United States. At the onset of the pandemic, cases were primarily concentrated in the western and central regions, but as time went on, the focal point of infections gradually shifted toward the eastern and southeastern parts of the country.
