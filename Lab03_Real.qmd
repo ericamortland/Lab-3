@@ -6,6 +6,7 @@ author:
   url: "https://ericamortland.github.io/"
   email: erica.mortland@colostate.edu
 format: html
+output-dir: docs
 execute:
   echo: true
 ---
