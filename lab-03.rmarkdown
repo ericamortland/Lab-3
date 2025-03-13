@@ -1,0 +1,208 @@
+---
+title: "Lab 3: COVID-19"
+subtitle: 'Ecosystem Science and Sustainability 330'
+author:
+  - name: Erica Mortland
+    email: erica.mortland@colostate.edu
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(flextable)
+library(zoo)
+```
+
+
+
+#1
+
+
+
+```{r}
+library(tidyverse)
+
+url = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'
+
+covid_data = read.csv(url)
+```
+
+
+
+#2
+
+
+
+```{r}
+library(tidyverse); library(flextable)
+data = read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv')
+
+txt <- "2022-02-01"
+class(txt)
+
+date_example <- as.Date(txt)
+class(date_example)
+```
+
+```{r}
+my.date <- as.Date("2022-02-01")
+my.state <- "Colorado"
+```
+
+```{r}
+colorado <- covid_data |>
+  filter(state == my.state) |>
+  group_by(county) |>
+  arrange(date)|>
+  mutate(new_cases = cases - lag(cases),
+         new_deaths = deaths - lag(deaths)) |>
+  ungroup()
+```
+
+```{r}
+filter(colorado, date == my.date) |>
+  slice_max(cases, n=5) |>
+  select(Date = date, County = county, Cases = cases) |>
+  flextable() |>
+  set_caption("Most Total Cases")
+
+filter(colorado, date == my.date) |>
+  slice_max(cases, n = 5) |>
+  select(Date = date, County = county, Cases = new_cases) |>
+  flextable() |>
+  set_caption(caption = "Most New Cases")
+  
+```
+
+
+The first table shows the 5 counties with the most CUMULATIVE cases, and the second should show the 5 counties with the most NEW cases
+
+#3
+
+After exploring the data I got post modifications there are some changes. The names of the columns are STNAME and CTYNAME as well as specifics for the year 2021, and there is overlap with the COVID data given they originate from the same source, however this data is now more specific. The dimensions are 3,195 (number of counties) by 18 (population-related attributes for each county).
+
+
+
+```{r}
+co_pop_data <- pop_data %>% filter(STNAME == "Colorado")
+pop_range <- range(co_pop_data$POPESTIMATE2021)
+pop_range
+```
+
+
+
+The ranges of populations seen in Colorado Counties in 2021 were from 741 to 5,811,596 people.
+
+
+
+```{r}
+co_pop_data <- pop_data %>%
+  filter(STNAME == "Colorado") %>%
+  mutate(
+    STATE = sprintf("%02d", as.integer(STATE)),
+    COUNTY = sprintf("%03d", as.integer(COUNTY)),
+    FIPS = paste0(STATE, COUNTY)
+  ) %>%
+  select(FIPS, County = CTYNAME, Population = POPESTIMATE2021)
+
+colorado <- colorado %>%
+  left_join(co_pop_data, by = c("county" = "County")) %>%
+  mutate(
+    per_capita_cases = cases / Population * 100000,
+    per_capita_new_cases = new_cases / Population * 100000,
+    per_capita_new_deaths = new_deaths / Population * 100000
+  )
+
+```
+
+```{r}
+# Top 5 Counties by Per Capita Cases
+filter(colorado, date == my.date) %>%
+  slice_max(per_capita_cases, n=5) %>%
+  select(Date = date, County = county, Cases_per_100k = per_capita_cases) %>%
+  flextable() %>%
+  set_caption("Top 5 Counties with Most Cumulative Cases per 100,000")
+
+# Top 5 Counties by Per Capita New Cases
+filter(colorado, date == my.date) %>%
+  slice_max(per_capita_new_cases, n=5) %>%
+  select(Date = date, County = county, New_Cases_per_100k = per_capita_new_cases) %>%
+  flextable() %>%
+  set_caption("Top 5 Counties with Most New Cases per 100,000")
+```
+
+
+The 5 counties with the most cumulative cases per capita on 2021-01-01, and the second should show the 5 counties with the most NEW cases per capita on the same date.
+
+#4
+
+
+```{r}
+
+colorado <- colorado %>%
+  mutate(Population = as.numeric(Population))
+
+recent_data <- colorado %>%
+  filter(date >= my.date - 14 & date <= my.date)
+
+county_summary <- recent_data %>%
+  group_by(county) %>%
+  summarise(
+    total_new_cases_14d = sum(new_cases, na.rm = TRUE),
+    Population = as.numeric(unique(Population)),  
+    per_100k_14d = (total_new_cases_14d / Population) * 100000
+  ) %>%
+  filter(per_100k_14d > 100) %>%
+  arrange(desc(per_100k_14d))
+
+county_summary %>%
+  select(County = county, `Total New Cases (14 Days)` = total_new_cases_14d, `Cases per 100k (14 Days)` = per_100k_14d) %>%
+  flextable() %>%
+  set_caption("Counties Exceeding Watchlist Threshold (14-Day Rolling Cases per 100k)")
+```
+
+
+
+
+#5
+
+
+```{r}
+tmp.date = as.Date("2025-02-15")
+lubridate::year(tmp.date)
+
+lubridate::month(tmp.date)
+lubridate::yday(tmp.date)
+
+
+```
+
+```{r}
+
+```
+
+
+
+
+#6
+
+
+
+```{r}
+rollmean('x', k=3, fill = NA, align = "left")
+rollmean('x', k=3, fill = NA, align = "right")
+
+state = covid_data %>%
+  group_by(date, state) %>%
+  summarise(cases = sum(cases, na.rm = TRUE), .groups = "drop") %>%  
+  filter(state %in% c("New York", "Ohio", "Colorado", "Alabama")) %>%
+  group_by(state) %>% 
+  mutate(
+    newCases = cases - lag(cases, order_by = date), 
+    roll = zoo::rollmean(newCases, k = 7, align = "right", fill = NA)
+  ) %>%
+  ungroup() 
+
+  
+```
+
